@@ -4,9 +4,11 @@ namespace LightHTML;
 
 public class LightElementNode : LightNode
 {
-    private readonly ElementStyle _style;  // <-- поле для Flyweight
+    private readonly ElementStyle _style;
     private readonly List<string> _cssClasses = new();
     private readonly List<LightNode> _children = new();
+
+    private readonly Dictionary<string, List<IEventListener>> _listeners = new();
 
     public string TagName => _style.TagName;
     public DisplayType Display => _style.Display;
@@ -23,11 +25,34 @@ public class LightElementNode : LightNode
         if (string.IsNullOrWhiteSpace(tagName))
             throw new ArgumentException("Tag name cannot be empty.", nameof(tagName));
 
-        // Отримуємо спільний Flyweight-об'єкт замість створення нового
         _style = ElementStyleFactory.Get(tagName, display, closing);
 
         if (cssClasses is not null)
             _cssClasses.AddRange(cssClasses);
+    }
+
+
+    public void AddEventListener(string eventName, IEventListener listener)
+    {
+        if (!_listeners.TryGetValue(eventName, out var list))
+        {
+            list = new List<IEventListener>();
+            _listeners[eventName] = list;
+        }
+        list.Add(listener);
+    }
+
+    public void RemoveEventListener(string eventName, IEventListener listener)
+    {
+        if (_listeners.TryGetValue(eventName, out var list))
+            list.Remove(listener);
+    }
+
+    public void DispatchEvent(string eventName)
+    {
+        if (_listeners.TryGetValue(eventName, out var list))
+            foreach (var listener in list)
+                listener.HandleEvent(eventName, this);
     }
 
     public LightElementNode AddChild(LightNode node)
