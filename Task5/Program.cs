@@ -121,6 +121,32 @@ catch (InvalidOperationException ex)
     Console.WriteLine($"[очікувана помилка] {ex.Message}");
 }
 
+PrintSeparator("6. СПОСТЕРІГАЧ: EventListener");
+
+var button = new LightElementNode("button", DisplayType.Inline, ClosingType.WithClosing);
+button.AddChild(new LightTextNode("Натисни мене"));
+
+var logger1 = new ConsoleEventListener("Logger1");
+var logger2 = new ConsoleEventListener("Logger2");
+var analytics = new ConsoleEventListener("Analytics");
+
+button.AddEventListener("click", logger1);
+button.AddEventListener("click", logger2);
+button.AddEventListener("mouseover", analytics);
+button.AddEventListener("mouseout", analytics);
+
+Console.WriteLine("Симулюємо click");
+button.DispatchEvent("click");
+
+Console.WriteLine("Симулюємо mouseover");
+button.DispatchEvent("mouseover");
+
+Console.WriteLine("Симулюємо mouseout");
+button.DispatchEvent("mouseout");
+
+Console.WriteLine("Відписуємо Logger2 від click");
+button.RemoveEventListener("click", logger2);
+button.DispatchEvent("click");
 
 static void PrintSeparator(string title)
 {
